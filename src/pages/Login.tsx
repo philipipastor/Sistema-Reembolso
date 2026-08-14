@@ -40,14 +40,14 @@ export function Login(){
                 name="email"
                 render={(({field}) => <Input type="email" legenda="E-mail" placeholder="Informe o seu e-mail" {...field}/>)}
                 />
-                <p>{errors.email?.message}</p>
+                <p className="text-red-600 ml-2 text-sm">{errors.email?.message}</p>
 
                 <Controller 
                 control={control}
                 name="password"
                 render={(({field}) => <Input type="password" legenda="Senha" placeholder="Informe a sua senha" {...field}/>)}
                 />
-                <p>{errors.password?.message}</p>
+                <p className="text-red-600 ml-2 text-sm">{errors.password?.message}</p>
                 
                 <Button type="submit" isLoading={isLoading}>Entrar</Button>
 
