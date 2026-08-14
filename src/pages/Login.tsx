@@ -1,6 +1,8 @@
 import { Input } from "../components/input.tsx"
 import { Button } from "../components/Button.tsx"
+import { Link } from "../components/Link.tsx"
 
+import { useState } from "react"
 import { useForm, Controller} from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
@@ -24,6 +26,8 @@ export function Login(){
         resolver:yupResolver(schema)
     })
 
+    const [isLoading, setIsLoading] = useState(false)
+
     function onSubmit(data: Login){
         console.log(data)
     }
@@ -45,8 +49,11 @@ export function Login(){
                 />
                 <p>{errors.password?.message}</p>
                 
-                <Button legenda={"Entrar"}/>
+                <Button type="submit" isLoading={isLoading}>Entrar</Button>
+
             </form>
+
+            <Link href="/cadastro">Criar conta</Link>
             
         </div>
     )
