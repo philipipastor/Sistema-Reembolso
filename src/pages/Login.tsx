@@ -51,10 +51,10 @@ export function Login(){
                 
                 <Button type="submit" isLoading={isLoading}>Entrar</Button>
 
+                <Link href="/cadastro">Criar conta</Link>
+
             </form>
 
-            <Link href="/cadastro">Criar conta</Link>
-            
         </div>
     )
 }
