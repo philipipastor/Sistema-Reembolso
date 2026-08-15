@@ -6,6 +6,7 @@ import { Select } from "../components/Select.tsx"
 import { Upload } from "../components/Upload.tsx"
 
 import { useState } from "react"
+import { useNavigate } from "react-router"
 
 import { Controller, useForm } from "react-hook-form"
 
@@ -32,6 +33,8 @@ const schema = yup.object({
 
 export function Refund(){
 
+    const navigate = useNavigate()
+
     const [isLoading, setIsLoading] = useState(false)
 
     const { control, handleSubmit, formState: {errors} } = useForm<DataRefund>({
@@ -46,6 +49,7 @@ export function Refund(){
 
     function onSubmit(data: DataRefund){
         console.log(data)
+        navigate("/confirm", { state: {fromSubmit: true}})
     }
 
     return(
