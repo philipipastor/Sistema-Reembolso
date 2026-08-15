@@ -1,5 +1,11 @@
+import { categories, categories_keys } from "../utils/categoria.ts"
+
 import { Input } from "../components/input.tsx"
 import { Button } from "../components/Button.tsx"
+import { Select } from "../components/Select.tsx"
+import { Upload } from "../components/Upload.tsx"
+
+import { useState } from "react"
 
 import { Controller, useForm } from "react-hook-form"
 
@@ -16,11 +22,17 @@ type DataRefund = {
 const schema = yup.object({
     nome: yup.string().required("Nome é obrigatório"),
     categoria: yup.string().required("Selecione uma categoria"),
-    valor: yup.number().positive("Valor deve ser maior que zero").required("Valor é obrigatório"),
+    valor: yup.number().
+        transform((value,originalValue) => originalValue === "" || Number.isNaN(value) ? undefined : value).
+        typeError("Valor deve ser um número válido").
+        positive("Valor deve ser maior que zero").
+        required("Valor é obrigatório"),
     file: yup.mixed(),   
 })
 
 export function Refund(){
+
+    const [isLoading, setIsLoading] = useState(false)
 
     const { control, handleSubmit, formState: {errors} } = useForm<DataRefund>({
         defaultValues: {
@@ -37,11 +49,11 @@ export function Refund(){
     }
 
     return(
-        <form onSubmit={handleSubmit(onSubmit)}>
-            <div>
+        <form className="bg-gray-500 w-full rounded-xl flex flex-col p-10 gap-6 lg:min-w-lg"onSubmit={handleSubmit(onSubmit)}>
+            <header>
                 <h1>Solicitação de reembolso</h1>
-                <h3>Dados da despesa para solicitar reembolso</h3>
-            </div>
+                <p className="text-sm text-gray-200 mt-2 mb-4">Dados da despesa para solicitar reembolso</p>
+            </header>
 
             <div>
                 <Controller 
@@ -52,49 +64,56 @@ export function Refund(){
                 <p className="text-red-600 ml-2 text-sm">{errors.nome?.message}</p>
 
 
-                <span>
+                <div className="flex gap-4">
+
+                    <div>
                     <Controller 
                         control={control}
                         name="categoria"
                         render={(({field}) => 
-                            <select {...field}>
-                                <option value="" disabled>Selecione</option>
-                                
-                                <option value="alimentacao">Alimentação</option>
-                                <option value="hospedagem">Hospedagem</option>
-                                <option value="transporte">transporte</option>
-                                <option value="servicos">Serviços</option>
-                                <option value="outros">Outros</option>
-                            </select>
+                            <Select {...field} legenda="Categoria">
+                                {categories_keys.map((categoria) => 
+                                    <option key={categoria} value={categoria}>
+                                        {categories[categoria].name}
+                                    </option>
+                                )}
+                            </Select>
                         )}
                     />
                     <p className="text-red-600 ml-2 text-sm">{errors.categoria?.message}</p>
+                    </div>
                     
+                    <div>
                     <Controller 
                         control={control}
                         name="valor"
                         render={(({field}) => <Input type="number" legenda="Valor" {...field}/>)}
                     />
                     <p className="text-red-600 ml-2 text-sm">{errors.valor?.message}</p>
+                    </div>
                     
+                </div>
+
                     <Controller 
                         control={control}
                         name="file"
-                        render={({ field: { onChange, onBlur, name, ref } }) => (
-                            <Input 
+                        render={({ field: { onChange, onBlur, name, ref, value } }) => (
+                            <Upload 
                                 type="file" 
-                                legenda="Comprovante"
                                 name={name}
                                 ref={ref}
                                 onBlur={onBlur}
                                 onChange={(e) => onChange(e.target.files?.[0])}
+                                file={value?.name}
                             />
                         )}
                     />
                     <p className="text-red-600 ml-2 text-sm">{errors.file?.message}</p>
-                </span>
-
-                <Button type="submit">Enviar</Button>
+                
+                <div className="mt-6">
+                    <Button type="submit" isLoading>Enviar</Button>
+                </div>
+                
 
             </div>
 
