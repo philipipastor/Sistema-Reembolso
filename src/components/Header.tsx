@@ -3,7 +3,7 @@ import logout from "../assets/logout.svg"
 
 export function Header(){
     return(
-        <header className="w-full flex justify-between">
+        <header className="w-full flex justify-between px-12">
             <img className="my-8"src={logo} alt="logo" />
 
             <div className="flex items-center gap-3">
