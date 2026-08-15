@@ -49,7 +49,10 @@ export function Login(){
                 />
                 <p className="text-red-600 ml-2 text-sm">{errors.password?.message}</p>
                 
-                <Button type="submit" isLoading={isLoading}>Entrar</Button>
+                <div className="w-sm">
+                    <Button type="submit" isLoading={isLoading}>Entrar</Button>
+                </div>
+                
 
                 <Link href="/cadastro">Criar conta</Link>
 
