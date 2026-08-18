@@ -1,12 +1,14 @@
 import { categories, categories_keys } from "../utils/categoria.ts"
 
+import file from "../assets/file.svg"
+
 import { Input } from "../components/input.tsx"
 import { Button } from "../components/Button.tsx"
 import { Select } from "../components/Select.tsx"
 import { Upload } from "../components/Upload.tsx"
 
 import { useState } from "react"
-import { useNavigate } from "react-router"
+import { useNavigate, useParams } from "react-router"
 
 import { Controller, useForm } from "react-hook-form"
 
@@ -28,12 +30,14 @@ const schema = yup.object({
         typeError("Valor deve ser um número válido").
         positive("Valor deve ser maior que zero").
         required("Valor é obrigatório"),
-    file: yup.mixed(),   
+    file: yup.mixed<File>(),   
 })
 
 export function Refund(){
 
     const navigate = useNavigate()
+
+    const params = useParams<{id: string}>()
 
     const [isLoading, setIsLoading] = useState(false)
 
@@ -49,7 +53,13 @@ export function Refund(){
 
     function onSubmit(data: DataRefund){
         console.log(data)
-        navigate("/confirm", { state: {fromSubmit: true}})
+
+        if(params.id){
+            return navigate(-1)
+        }
+
+        return navigate("/confirm", { state: {fromSubmit: true}})
+
     }
 
     return(
@@ -63,7 +73,12 @@ export function Refund(){
                 <Controller 
                     control={control}
                     name="nome"
-                    render={(({field}) => <Input legenda="Nome da solicitação" {...field}/>)}
+                    render={(({field}) => 
+                    <Input 
+                    legenda="Nome da solicitação" 
+                    {...field} 
+                    disabled={!!params.id}
+                    />)}
                 />
                 <p className="text-red-600 ml-2 text-sm">{errors.nome?.message}</p>
 
@@ -75,7 +90,7 @@ export function Refund(){
                         control={control}
                         name="categoria"
                         render={(({field}) => 
-                            <Select {...field} legenda="Categoria">
+                            <Select {...field} legenda="Categoria" disabled={!!params.id}>
                                 {categories_keys.map((categoria) => 
                                     <option key={categoria} value={categoria}>
                                         {categories[categoria].name}
@@ -91,34 +106,39 @@ export function Refund(){
                     <Controller 
                         control={control}
                         name="valor"
-                        render={(({field}) => <Input type="number" legenda="Valor" {...field}/>)}
+                        render={(({field}) => <Input type="number" legenda="Valor" {...field} disabled={!!params.id}/>)}
                     />
                     <p className="text-red-600 ml-2 text-sm">{errors.valor?.message}</p>
                     </div>
                     
                 </div>
-
+                    
                     <Controller 
                         control={control}
                         name="file"
-                        render={({ field: { onChange, onBlur, name, ref, value } }) => (
-                            <Upload 
-                                type="file" 
-                                name={name}
-                                ref={ref}
-                                onBlur={onBlur}
-                                onChange={(e) => onChange(e.target.files?.[0])}
-                                file={value?.name}
-                            />
-                        )}
+                        render={({ field: { onChange, onBlur, name, ref, value } }) => 
+                            {
+                                return params.id ? 
+                                (<a href="https://app.rocketseat.com.br/" className="text-sm text-green-100 font-semibold flex items-center justify-center gap-2 my-6 hover: opacity-70 transition ease-linear"> <img src={file} alt="ícone de arquivo"/> Abrir comprovante </a>) 
+                                : 
+                                (<Upload
+                                    type="file"
+                                    name={name}
+                                    ref={ref}
+                                    onBlur={onBlur}
+                                    onChange={(e) => onChange(e.target.files?.[0])}
+                                    file={value?.name} />)
+                            }
+                        }
                     />
                     <p className="text-red-600 ml-2 text-sm">{errors.file?.message}</p>
                 
                 <div className="mt-6">
-                    <Button type="submit" isLoading>Enviar</Button>
+                    <Button type="submit" isLoading>
+                        {params.id ? "Voltar" : "Enviar"}
+                    </Button>
                 </div>
                 
-
             </div>
 
         </form>
