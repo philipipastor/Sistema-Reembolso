@@ -2,10 +2,13 @@ import { Input } from "../components/input.tsx"
 import { Button } from "../components/Button.tsx"
 import { Link } from "../components/Link.tsx"
 
+import { api } from "../services/api.ts"
+
 import { useState } from "react"
 import { useForm, Controller} from "react-hook-form"
 import { yupResolver } from "@hookform/resolvers/yup"
 import * as yup from "yup"
+import { AxiosError } from "axios"
 
 type Login = {
     email: string,
@@ -27,9 +30,26 @@ export function Login(){
     })
 
     const [isLoading, setIsLoading] = useState(false)
+    const [messageError, setMessageError] = useState("")
 
-    function onSubmit(data: Login){
-        console.log(data)
+    async function onSubmit(data: Login){
+
+        try {
+            setIsLoading(true)
+            setMessageError("")
+            const response = await api.post("/sessions", data)
+            console.log(response.data)
+            
+        } catch (error) {
+            console.log(error)
+
+            if(error instanceof AxiosError){
+                return setMessageError(error.response?.data.message)
+            }
+
+            return setMessageError("Não foi possível entrar!")
+        }
+        
     }
 
     return(
@@ -48,7 +68,9 @@ export function Login(){
                 render={(({field}) => <Input type="password" legenda="Senha" placeholder="Informe a sua senha" {...field}/>)}
                 />
                 <p className="text-red-600 ml-2 text-sm">{errors.password?.message}</p>
-                
+
+                <p className="text-sm text-red-600 text-center my-4 font-medium">{messageError}</p>
+
                 <div className="w-sm">
                     <Button type="submit" isLoading={isLoading}>Entrar</Button>
                 </div>

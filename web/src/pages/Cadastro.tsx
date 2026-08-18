@@ -2,30 +2,39 @@ import { Input } from "../components/input.tsx"
 import { Button } from "../components/Button.tsx"
 import { Link } from "../components/Link.tsx"
 
+import { api } from "../services/api.ts"
+
 import { Controller, useForm } from "react-hook-form"
+import { useState } from "react"
+import { useNavigate } from "react-router"
 
 import * as yup from "yup"
 import { yupResolver } from "@hookform/resolvers/yup"
+import { AxiosError } from "axios"
 
 type Cadastro = {
-    nome: string,
+    name: string,
     email: string,
     password: string,
     passwordConfirm: string
 }
 
 const schema = yup.object({
-    nome: yup.string().required("Informe o seu nome"),
+    name: yup.string().trim().required("Informe o seu nome"),
     email: yup.string().email("Digite um e-mail válido").required("Informe seu e-mail"), 
-    password: yup.string().required("Informe sua senha"),
-    passwordConfirm: yup.string().required("Confirme sua senha").oneOf([yup.ref("password")], "As senhas não coincidem")
+    password: yup.string().min(6, "Senha deve ter pelo menos 6 dígitos").required("Informe sua senha"),
+    passwordConfirm: yup.string().min(6, "Senha deve ter pelo menos 6 dígitos").required("Confirme sua senha").oneOf([yup.ref("password")], "As senhas não coincidem")
 })
 
 export function Cadastro() {
 
+    const navigate = useNavigate()
+
+    const [isLoading, setIsLoading] = useState(false)
+
     const {control, handleSubmit, formState: {errors}} = useForm<Cadastro>({
         defaultValues:{
-            nome: "",
+            name: "",
             email: "",
             password: "",
             passwordConfirm:""
@@ -33,8 +42,31 @@ export function Cadastro() {
         resolver: yupResolver(schema)
         })
 
-    function onSubmit(data: Cadastro){
-        console.log(data)
+    async function onSubmit(data: Cadastro){
+
+        try {
+            setIsLoading(true)
+
+            await api.post("/users", data)
+
+            if(confirm("Cadastro concluido, deseja seguir para a página de login ?")){
+                navigate("/")
+            }
+            
+        } catch (error) {
+
+            console.log(error)
+
+            if(error instanceof AxiosError){
+                return alert(error.response?.data.message)
+            }
+
+            alert("Não foi possível cadastrar!")
+        }
+
+        finally {
+            setIsLoading(false)
+        }
     }
 
     return(
@@ -42,10 +74,10 @@ export function Cadastro() {
             <form className="w-full flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)}>
                 <Controller 
                 control={control}
-                name="nome"
-                render={(({field}) => <Input legenda="Nome" placeholder="Informe seu nome" {...field}/>)}
+                name="name"
+                render={(({field}) => <Input legenda="Nome" placeholder="Informe seu nome" variant="inputC" {...field}/>)}
                 />
-                <p className="text-red-600 ml-2 text-sm">{errors.nome?.message}</p>
+                <p className="text-red-600 ml-2 text-sm">{errors.name?.message}</p>
 
                 <Controller 
                 control={control}
@@ -57,18 +89,18 @@ export function Cadastro() {
                 <Controller 
                 control={control}
                 name="password"
-                render={(({field}) => <Input legenda="senha" type="passsword" placeholder="Informe sua senha" {...field}/>)}
+                render={(({field}) => <Input legenda="senha" type="password" placeholder="Informe sua senha" {...field}/>)}
                 />
                 <p className="text-red-600 ml-2 text-sm">{errors.password?.message}</p>
 
                 <Controller
                 control={control}
                 name="passwordConfirm"
-                render={(({field}) => <Input legenda="confirme a senha" type="passsword" placeholder="Confirme sua senha" {...field}/>)}
+                render={(({field}) => <Input legenda="confirme a senha" type="password" placeholder="Confirme sua senha" {...field}/>)}
                 />
                 <p className="text-red-600 ml-2 text-sm">{errors.passwordConfirm?.message}</p>
 
-                <Button type="submit">Cadastrar</Button>
+                <Button type="submit" isLoading={isLoading}>Cadastrar</Button>
 
                 <Link href="/">Já tenho uma conta</Link>
             </form>
