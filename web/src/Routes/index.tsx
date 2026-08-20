@@ -6,18 +6,16 @@ import { AuthRoutes } from "./AuthRoutes"
 import { EmployeeRoutes } from "./EmployeeRoutes"
 import { ManagerRoutes } from "./ManagerRoutes"
 
-const isLoading = false
+import { useAuth } from "../hooks/useContext.tsx"
 
-const session = {
-    user: {
-        role: "",
-    }
-}
+const isLoading = false
 
 export function Routes(){
 
+    const context = useAuth()
+
     function Route(){
-        switch (session.user.role) {
+        switch (context.session?.user.role) {
             case "employee":
                 return <EmployeeRoutes />
             
