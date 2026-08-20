@@ -3,6 +3,7 @@ import { Button } from "../components/Button.tsx"
 import { Link } from "../components/Link.tsx"
 
 import { api } from "../services/api.ts"
+import { useAuth } from "../hooks/useContext.tsx"
 
 import { useState } from "react"
 import { useForm, Controller} from "react-hook-form"
@@ -31,6 +32,7 @@ export function Login(){
 
     const [isLoading, setIsLoading] = useState(false)
     const [messageError, setMessageError] = useState("")
+    const auth = useAuth()
 
     async function onSubmit(data: Login){
 
@@ -38,7 +40,7 @@ export function Login(){
             setIsLoading(true)
             setMessageError("")
             const response = await api.post("/sessions", data)
-            console.log(response.data)
+            auth.save(response.data)
             
         } catch (error) {
             console.log(error)
