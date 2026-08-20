@@ -31,6 +31,7 @@ export function Cadastro() {
     const navigate = useNavigate()
 
     const [isLoading, setIsLoading] = useState(false)
+    const [textError, setTextError] = useState("")
 
     const {control, handleSubmit, formState: {errors}} = useForm<Cadastro>({
         defaultValues:{
@@ -58,10 +59,10 @@ export function Cadastro() {
             console.log(error)
 
             if(error instanceof AxiosError){
-                return alert(error.response?.data.message)
+                return setTextError(error.response?.data.message)
             }
 
-            alert("Não foi possível cadastrar!")
+            setTextError("Não foi possível cadastrar!")
         }
 
         finally {
@@ -99,6 +100,8 @@ export function Cadastro() {
                 render={(({field}) => <Input legenda="confirme a senha" type="password" placeholder="Confirme sua senha" {...field}/>)}
                 />
                 <p className="text-red-600 ml-2 text-sm">{errors.passwordConfirm?.message}</p>
+
+                <p className="text-red-600 ml-2 text-sm flex justify-center items-center mt-5">{textError}</p>
 
                 <Button type="submit" isLoading={isLoading}>Cadastrar</Button>
 
