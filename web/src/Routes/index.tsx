@@ -8,8 +8,6 @@ import { ManagerRoutes } from "./ManagerRoutes"
 
 import { useAuth } from "../hooks/useContext.tsx"
 
-const isLoading = false
-
 export function Routes(){
 
     const context = useAuth()
@@ -27,7 +25,7 @@ export function Routes(){
         }
     }
 
-    if(isLoading){
+    if(context.isLoading){
         return <Loading/>
     }
 
