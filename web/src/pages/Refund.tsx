@@ -2,6 +2,9 @@ import { categories, categories_keys } from "../utils/categoria.ts"
 
 import file from "../assets/file.svg"
 
+import { api } from "../services/api.ts"
+import { AxiosError } from "axios"
+
 import { Input } from "../components/input.tsx"
 import { Button } from "../components/Button.tsx"
 import { Select } from "../components/Select.tsx"
@@ -16,21 +19,21 @@ import * as yup from "yup"
 import { yupResolver } from "@hookform/resolvers/yup"
 
 type DataRefund = {
-        nome: string,
-        categoria: string,
-        valor: number,
-        file?: File | undefined
+        name: string,
+        category: string,
+        amount: number,
+        filename: File
 }
 
 const schema = yup.object({
-    nome: yup.string().required("Nome é obrigatório"),
-    categoria: yup.string().required("Selecione uma categoria"),
-    valor: yup.number().
+    name: yup.string().required("Nome é obrigatório"),
+    category: yup.string().required("Selecione uma categoria"),
+    amount: yup.number().
         transform((value,originalValue) => originalValue === "" || Number.isNaN(value) ? undefined : value).
         typeError("Valor deve ser um número válido").
         positive("Valor deve ser maior que zero").
         required("Valor é obrigatório"),
-    file: yup.mixed<File>(),   
+    filename: yup.mixed<File>().required("Comprovante é obrigatório"),   
 })
 
 export function Refund(){
@@ -40,39 +43,62 @@ export function Refund(){
     const params = useParams<{id: string}>()
 
     const [isLoading, setIsLoading] = useState(false)
+    const [textError, setTextError] = useState("")
 
     const { control, handleSubmit, formState: {errors} } = useForm<DataRefund>({
         defaultValues: {
-            nome: "",
-            categoria: "",
-            valor: 0,
-            file: undefined
+            name: "",
+            category: "",
+            amount: 0,
+            filename: undefined
         },
         resolver: yupResolver(schema)
     })
 
-    function onSubmit(data: DataRefund){
-        console.log(data)
-
+    async function onSubmit(data: DataRefund){
+        
         if(params.id){
             return navigate(-1)
         }
 
-        return navigate("/confirm", { state: {fromSubmit: true}})
+        try {
+            setIsLoading(true)
+
+            const fileUploadForm = new FormData()
+            fileUploadForm.append("file", data.filename)
+            const response = await api.post("/uploads", fileUploadForm)
+
+            await api.post("/refunds", {...data, filename: response.data.filename})
+
+            navigate("/confirm", { state: {fromSubmit: true}})
+
+        } catch (error) {
+            console.log(error)
+
+            if(error instanceof AxiosError){
+                return setTextError(error.response?.data.message)
+            }
+
+            setTextError("Não foi possível realizar a solicitação")
+        }
+
+        finally{
+            setIsLoading(false)
+        }
 
     }
 
     return(
         <form className="bg-gray-500 w-full rounded-xl flex flex-col p-10 gap-6 lg:min-w-lg"onSubmit={handleSubmit(onSubmit)}>
             <header>
-                <h1>Solicitação de reembolso</h1>
+                <h1 className="font-bold">Solicitação de reembolso</h1>
                 <p className="text-sm text-gray-200 mt-2 mb-4">Dados da despesa para solicitar reembolso</p>
             </header>
 
             <div>
                 <Controller 
                     control={control}
-                    name="nome"
+                    name="name"
                     render={(({field}) => 
                     <Input 
                     legenda="Nome da solicitação" 
@@ -80,7 +106,7 @@ export function Refund(){
                     disabled={!!params.id}
                     />)}
                 />
-                <p className="text-red-600 ml-2 text-sm">{errors.nome?.message}</p>
+                <p className="text-red-600 ml-2 text-sm">{errors.name?.message}</p>
 
 
                 <div className="flex gap-4">
@@ -88,7 +114,7 @@ export function Refund(){
                     <div>
                     <Controller 
                         control={control}
-                        name="categoria"
+                        name="category"
                         render={(({field}) => 
                             <Select {...field} legenda="Categoria" disabled={!!params.id}>
                                 {categories_keys.map((categoria) => 
@@ -99,23 +125,23 @@ export function Refund(){
                             </Select>
                         )}
                     />
-                    <p className="text-red-600 ml-2 text-sm">{errors.categoria?.message}</p>
+                    <p className="text-red-600 ml-2 text-sm">{errors.category?.message}</p>
                     </div>
                     
                     <div>
-                    <Controller 
+                    <Controller
                         control={control}
-                        name="valor"
+                        name="amount"
                         render={(({field}) => <Input type="number" legenda="Valor" {...field} disabled={!!params.id}/>)}
                     />
-                    <p className="text-red-600 ml-2 text-sm">{errors.valor?.message}</p>
+                    <p className="text-red-600 ml-2 text-sm">{errors.amount?.message}</p>
                     </div>
                     
                 </div>
                     
                     <Controller 
                         control={control}
-                        name="file"
+                        name="filename"
                         render={({ field: { onChange, onBlur, name, ref, value } }) => 
                             {
                                 return params.id ? 
@@ -131,10 +157,12 @@ export function Refund(){
                             }
                         }
                     />
-                    <p className="text-red-600 ml-2 text-sm">{errors.file?.message}</p>
+                    <p className="text-red-600 ml-2 text-sm">{errors.filename?.message}</p>
+
+                <p className="text-red-600 ml-2 text-sm flex justify-center items-center mt-5">{textError}</p>
                 
-                <div className="mt-6">
-                    <Button type="submit" isLoading>
+                <div className="mt-4">
+                    <Button type="submit" isLoading={isLoading}>
                         {params.id ? "Voltar" : "Enviar"}
                     </Button>
                 </div>
