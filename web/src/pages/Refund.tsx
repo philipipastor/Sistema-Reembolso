@@ -10,13 +10,14 @@ import { Button } from "../components/Button.tsx"
 import { Select } from "../components/Select.tsx"
 import { Upload } from "../components/Upload.tsx"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router"
 
 import { Controller, useForm } from "react-hook-form"
 
 import * as yup from "yup"
 import { yupResolver } from "@hookform/resolvers/yup"
+import type { RefundApiResponse } from "../dtos/refunds.ts"
 
 type DataRefund = {
         name: string,
@@ -44,8 +45,9 @@ export function Refund(){
 
     const [isLoading, setIsLoading] = useState(false)
     const [textError, setTextError] = useState("")
+    const [fileURL, setFileURL] = useState<string | null>(null)
 
-    const { control, handleSubmit, formState: {errors} } = useForm<DataRefund>({
+    const { control, handleSubmit, reset, formState: {errors} } = useForm<DataRefund>({
         defaultValues: {
             name: "",
             category: "",
@@ -65,6 +67,9 @@ export function Refund(){
             setIsLoading(true)
 
             const fileUploadForm = new FormData()
+             if (!data.filename) {
+                return setTextError("Comprovante é obrigatório")
+            }
             fileUploadForm.append("file", data.filename)
             const response = await api.post("/uploads", fileUploadForm)
 
@@ -87,6 +92,35 @@ export function Refund(){
         }
 
     }
+
+    async function fetchRefund(id: string) {
+        try {
+            const response = await api.get<RefundApiResponse>(`/refunds/${id}`)
+
+            reset({
+                name: response.data.name,
+                category: response.data.category,
+                amount: response.data.amount,
+            })
+
+            setFileURL(response.data.filename)
+
+        } catch (error){
+            console.log(error)
+
+            if(error instanceof AxiosError){
+                return setTextError(error.response?.data.message)
+            }
+
+            setTextError("Não foi possível carregar")
+        }
+    }
+
+    useEffect(() => {
+        if(params.id){
+            fetchRefund(params.id)
+        }
+    },[params.id])
 
     return(
         <form className="bg-gray-500 w-full rounded-xl flex flex-col p-10 gap-6 lg:min-w-lg"onSubmit={handleSubmit(onSubmit)}>
@@ -144,8 +178,8 @@ export function Refund(){
                         name="filename"
                         render={({ field: { onChange, onBlur, name, ref, value } }) => 
                             {
-                                return params.id ? 
-                                (<a href="https://app.rocketseat.com.br/" className="text-sm text-green-100 font-semibold flex items-center justify-center gap-2 my-6 hover: opacity-70 transition ease-linear"> <img src={file} alt="ícone de arquivo"/> Abrir comprovante </a>) 
+                                return (params.id && fileURL) ? 
+                                (<a href={`http://localhost:3333/uploads/${fileURL}`} target="_blank" className="text-sm text-green-100 font-semibold flex items-center justify-center gap-2 my-6 hover: opacity-70 transition ease-linear"> <img src={file} alt="ícone de arquivo"/> Abrir comprovante </a>) 
                                 : 
                                 (<Upload
                                     type="file"
