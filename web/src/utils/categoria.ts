@@ -9,7 +9,7 @@ export const categories = {
         name: "Alimentação",
         icon: food
     },
-    other: {
+    others: {
         name: "Outros",
         icon: other
     },
