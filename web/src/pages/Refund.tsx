@@ -59,10 +59,6 @@ export function Refund(){
 
     async function onSubmit(data: DataRefund){
 
-        if(params.id){
-            return navigate(-1)
-        }
-
         try {
             setIsLoading(true)
 
@@ -196,9 +192,11 @@ export function Refund(){
                 <p className="text-red-600 ml-2 text-sm flex justify-center items-center mt-5">{textError}</p>
                 
                 <div className="mt-4">
-                    <Button type="submit" isLoading={isLoading}>
-                        {params.id ? "Voltar" : "Enviar"}
-                    </Button>
+                    {params.id 
+                    ? 
+                    (<Button type="button" onClick={() => navigate(-1)}>Voltar</Button>)
+                    :
+                    (<Button type="submit" isLoading={isLoading}>Enviar</Button>)}
                 </div>
                 
             </div>
