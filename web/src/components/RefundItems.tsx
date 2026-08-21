@@ -1,7 +1,7 @@
 export type PropsRefundItems = {
     id: string,
-    nome: string,
-    category: string,
+    name: string,
+    description: string,
     amount: string,
     categoryIcon: string
 }
@@ -17,8 +17,8 @@ export function RefundItems({data, ...rest}: Props){
             <img className="w-8 h-8" src={data.categoryIcon} alt="ícone da categoria"/>
 
             <div className="flex flex-col flex-1">
-                <strong className="text-sm text-gray-100">{data.nome}</strong>
-                <span className="text-xs">{data.category}</span>
+                <strong className="text-sm text-gray-100">{data.name}</strong>
+                <span className="text-xs">{data.description}</span>
             </div>
 
             <span className="text-sm text-gray-100 font-semibold">
