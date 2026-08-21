@@ -27,7 +27,6 @@ export function Dashboard(){
 
         try {
             const response = await api.get<RefundsPaginationApiResponse>(`/refunds?name=${name.trim()}&page=${page}&perPage=${perPage}`)    
-            console.log(response.data)
             
         setRefunds(
             response.data.refunds.map((refund) => ({
